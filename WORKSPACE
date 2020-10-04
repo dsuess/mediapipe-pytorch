@@ -2,6 +2,13 @@ workspace(name = "mediapipe_addons")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
+http_archive(
+    name = "mediapipe",
+    strip_prefix = "mediapipe-0.7.11",
+    urls = ["https://github.com/google/mediapipe/archive/v0.7.11.zip"],
+)
+
+
 skylib_version = "0.9.0"
 http_archive(
     name = "bazel_skylib",
@@ -21,7 +28,7 @@ http_archive(
     ],
     # Remove after https://github.com/abseil/abseil-cpp/issues/326 is solved.
     patches = [
-        "@//third_party:com_google_absl_f863b622fe13612433fdf43f76547d5edda0c93001.diff"
+        "@mediapipe//third_party:com_google_absl_f863b622fe13612433fdf43f76547d5edda0c93001.diff"
     ],
     patch_args = [
         "-p1",
@@ -56,7 +63,7 @@ http_archive(
     urls = ["https://github.com/google/googletest/archive/aee0f9d9b5b87796ee8a0ab26b7587ec30e8858e.zip"],
     patches = [
         # fix for https://github.com/google/googletest/issues/2817
-        "@//third_party:com_google_googletest_9d580ea80592189e6d44fa35bcf9cdea8bf620d6.diff"
+        "@mediapipe//third_party:com_google_googletest_9d580ea80592189e6d44fa35bcf9cdea8bf620d6.diff"
     ],
     patch_args = [
         "-p1",
@@ -70,7 +77,7 @@ http_archive(
     name = "com_google_benchmark",
     urls = ["https://github.com/google/benchmark/archive/master.zip"],
     strip_prefix = "benchmark-master",
-    build_file = "@//third_party:benchmark.BUILD",
+    build_file = "@mediapipe//third_party:benchmark.BUILD",
 )
 
 # gflags needed by glog
@@ -94,12 +101,12 @@ http_archive(
     name = "com_github_glog_glog_no_gflags",
     strip_prefix = "glog-0a2e5931bd5ff22fd3bf8999eb8ce776f159cda6",
     sha256 = "58c9b3b6aaa4dd8b836c0fd8f65d0f941441fb95e27212c5eeb9979cfd3592ab",
-    build_file = "@//third_party:glog_no_gflags.BUILD",
+    build_file = "@mediapipe//third_party:glog_no_gflags.BUILD",
     urls = [
         "https://github.com/google/glog/archive/0a2e5931bd5ff22fd3bf8999eb8ce776f159cda6.zip",
     ],
     patches = [
-        "@//third_party:com_github_glog_glog_9779e5ea6ef59562b030248947f787d1256132ae.diff"
+        "@mediapipe//third_party:com_github_glog_glog_9779e5ea6ef59562b030248947f787d1256132ae.diff"
     ],
     patch_args = [
         "-p1",
@@ -111,14 +118,14 @@ http_archive(
     name = "easyexif",
     url = "https://github.com/mayanklahiri/easyexif/archive/master.zip",
     strip_prefix = "easyexif-master",
-    build_file = "@//third_party:easyexif.BUILD",
+    build_file = "@mediapipe//third_party:easyexif.BUILD",
 )
 
 # libyuv
 http_archive(
     name = "libyuv",
     urls = ["https://chromium.googlesource.com/libyuv/libyuv/+archive/refs/heads/master.tar.gz"],
-    build_file = "@//third_party:libyuv.BUILD",
+    build_file = "@mediapipe//third_party:libyuv.BUILD",
 )
 
 # Note: protobuf-javalite is no longer released as a separate download, it's included in the main Java download.
@@ -136,7 +143,7 @@ http_archive(
     strip_prefix = "protobuf-3.11.4",
     urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.11.4.tar.gz"],
     patches = [
-        "@//third_party:com_google_protobuf_fixes.diff"
+        "@mediapipe//third_party:com_google_protobuf_fixes.diff"
     ],
     patch_args = [
         "-p1",
@@ -172,7 +179,7 @@ http_archive(
     name = "ceres_solver",
     url = "https://github.com/ceres-solver/ceres-solver/archive/1.14.0.zip",
     patches = [
-        "@//third_party:ceres_solver_compatibility_fixes.diff"
+        "@mediapipe//third_party:ceres_solver_compatibility_fixes.diff"
     ],
     patch_args = [
         "-p1",
@@ -190,37 +197,37 @@ http_archive(
 
 new_local_repository(
     name = "linux_opencv",
-    build_file = "@//third_party:opencv_linux.BUILD",
+    build_file = "@mediapipe//third_party:opencv_linux.BUILD",
     path = "/usr",
 )
 
 new_local_repository(
     name = "linux_ffmpeg",
-    build_file = "@//third_party:ffmpeg_linux.BUILD",
+    build_file = "@mediapipe//third_party:ffmpeg_linux.BUILD",
     path = "/usr"
 )
 
 new_local_repository(
     name = "macos_opencv",
-    build_file = "@//third_party:opencv_macos.BUILD",
+    build_file = "@mediapipe//third_party:opencv_macos.BUILD",
     path = "/usr/local/opt/opencv@3",
 )
 
 new_local_repository(
     name = "macos_ffmpeg",
-    build_file = "@//third_party:ffmpeg_macos.BUILD",
+    build_file = "@mediapipe//third_party:ffmpeg_macos.BUILD",
     path = "/usr/local/opt/ffmpeg",
 )
 
 new_local_repository(
     name = "windows_opencv",
-    build_file = "@//third_party:opencv_windows.BUILD",
+    build_file = "@mediapipe//third_party:opencv_windows.BUILD",
     path = "C:\\opencv\\build",
 )
 
 http_archive(
     name = "android_opencv",
-    build_file = "@//third_party:opencv_android.BUILD",
+    build_file = "@mediapipe//third_party:opencv_android.BUILD",
     strip_prefix = "OpenCV-android-sdk",
     type = "zip",
     url = "https://github.com/opencv/opencv/releases/download/3.4.3/opencv-3.4.3-android-sdk.zip",
@@ -233,7 +240,7 @@ http_archive(
 http_archive(
     name = "ios_opencv",
     sha256 = "7dd536d06f59e6e1156b546bd581523d8df92ce83440002885ec5abc06558de2",
-    build_file = "@//third_party:opencv_ios.BUILD",
+    build_file = "@mediapipe//third_party:opencv_ios.BUILD",
     type = "zip",
     url = "https://github.com/opencv/opencv/releases/download/3.2.0/opencv-3.2.0-ios-framework.zip",
 )
@@ -255,7 +262,7 @@ http_archive(
     url = "https://github.com/bazelbuild/rules_apple/releases/download/0.19.0/rules_apple.0.19.0.tar.gz",
     patches = [
         # Bypass checking ios unit test runner when building MP ios applications.
-        "@//third_party:build_bazel_rules_apple_bypass_test_runner_check.diff"
+        "@mediapipe//third_party:build_bazel_rules_apple_bypass_test_runner_check.diff"
     ],
     patch_args = [
         "-p1",
@@ -299,7 +306,7 @@ http_archive(
     url = "https://github.com/google/google-toolbox-for-mac/archive/v2.2.1.zip",
     sha256 = "e3ac053813c989a88703556df4dc4466e424e30d32108433ed6beaec76ba4fdc",
     strip_prefix = "google-toolbox-for-mac-2.2.1",
-    build_file = "@//third_party:google_toolbox_for_mac.BUILD",
+    build_file = "@mediapipe//third_party:google_toolbox_for_mac.BUILD",
 )
 
 # Maven dependencies.
@@ -371,7 +378,7 @@ http_archive(
       "https://github.com/tensorflow/tensorflow/archive/%s.tar.gz" % _TENSORFLOW_GIT_COMMIT,
     ],
     patches = [
-        "@//third_party:org_tensorflow_compatibility_fixes.diff",
+        "@mediapipe//third_party:org_tensorflow_compatibility_fixes.diff",
     ],
     patch_args = [
         "-p1",
@@ -382,9 +389,3 @@ http_archive(
 
 load("@org_tensorflow//tensorflow:workspace.bzl", "tf_workspace")
 tf_workspace(tf_repo_name = "org_tensorflow")
-
-http_archive(
-    name = "mediapipe",
-    strip_prefix = "mediapipe-0.7.11",
-    urls = ["https://github.com/google/mediapipe/archive/v0.7.11.zip"],
-)
