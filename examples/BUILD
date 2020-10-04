@@ -8,6 +8,7 @@ cc_binary(
         "@mediapipe//mediapipe/calculators/util:annotation_overlay_calculator",
         "@mediapipe//mediapipe/calculators/core:flow_limiter_calculator",
         "@mediapipe//mediapipe/calculators/util:non_max_suppression_calculator",
+        "@mediapipe//mediapipe/calculators/util:detection_label_id_to_text_calculator",
         "//mediapipe_pytorch:pytorch_inference_calculator",
     ],
 )

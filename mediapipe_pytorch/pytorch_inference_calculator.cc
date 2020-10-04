@@ -88,21 +88,26 @@ namespace mediapipe
       auto output_detections = absl::make_unique<Detections>();
       for (auto idx = 0; idx < result.size(0); ++idx)
       {
-        float x = result.index({idx, 0}).item<float>();
-        float y = result.index({idx, 1}).item<float>();
-        float w = result.index({idx, 2}).item<float>();
-        float h = result.index({idx, 3}).item<float>();
+        const float x = result.index({idx, 0}).item<float>();
+        const float y = result.index({idx, 1}).item<float>();
+        const float w = result.index({idx, 2}).item<float>();
+        const float h = result.index({idx, 3}).item<float>();
+        const float obj_score = result.index({idx, 4}).item<float>();
+        const auto class_scores = result.index({idx, Slice(5, None)});
+        const auto class_id = class_scores.argmax().item<int>();
+        const auto class_score = class_scores[class_id].item<float>();
 
         Detection detection;
-        //detection.set_label_id(1);
+        detection.add_label_id(class_id);
+        detection.add_score(obj_score * class_score);
         //detection.set_label("HELLO");
         auto location = detection.mutable_location_data();
-        location->set_format(LocationData::BOUNDING_BOX);
-        auto box = location->mutable_bounding_box();
-        box->set_xmin(x - w / 2);
-        box->set_ymin(y - h / 2);
-        box->set_width(w);
-        box->set_height(h);
+        location->set_format(LocationData::RELATIVE_BOUNDING_BOX);
+        auto box = location->mutable_relative_bounding_box();
+        box->set_xmin((x - w / 2) / 640);
+        box->set_ymin((y - h / 2) / 480);
+        box->set_width(w / 640);
+        box->set_height(h / 480);
         output_detections->emplace_back(detection);
       }
 

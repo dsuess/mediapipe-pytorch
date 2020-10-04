@@ -22,7 +22,7 @@ output_stream: "output_video"
 node {
   calculator: "FlowLimiterCalculator"
   input_stream: "input_video"
-  input_stream: "FINISHED:detections"
+  input_stream: "FINISHED:filtered_detections"
   input_stream_info: {
     tag_index: "FINISHED"
     back_edge: true
@@ -37,10 +37,38 @@ node {
   output_stream: "detections"
 }
 
+# Performs non-max suppression to remove excessive detections.
+node {
+  calculator: "NonMaxSuppressionCalculator"
+  input_stream: "detections"
+  output_stream: "filtered_detections"
+  node_options: {
+    [type.googleapis.com/mediapipe.NonMaxSuppressionCalculatorOptions] {
+      min_suppression_threshold: 0.4
+      max_num_detections: 8
+      overlap_type: INTERSECTION_OVER_UNION
+      return_empty_detections: true
+    }
+  }
+}
+
+# Maps detection label IDs to the corresponding label text. The label map is
+# provided in the label_map_path option.
+node {
+  calculator: "DetectionLabelIdToTextCalculator"
+  input_stream: "filtered_detections"
+  output_stream: "output_detections"
+  node_options: {
+    [type.googleapis.com/mediapipe.DetectionLabelIdToTextCalculatorOptions] {
+      label_map_path: "examples/coco_labels.txt"
+    }
+  }
+}
+
 # Converts the detections to drawing primitives for annotation overlay.
 node {
   calculator: "DetectionsToRenderDataCalculator"
-  input_stream: "DETECTIONS:detections"
+  input_stream: "DETECTIONS:output_detections"
   output_stream: "RENDER_DATA:render_data"
   node_options: {
     [type.googleapis.com/mediapipe.DetectionsToRenderDataCalculatorOptions] {
