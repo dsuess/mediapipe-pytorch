@@ -18,6 +18,7 @@ cc_binary(
         "@mediapipe//mediapipe/calculators/util:detections_to_render_data_calculator",
         "@mediapipe//mediapipe/calculators/util:annotation_overlay_calculator",
         "@mediapipe//mediapipe/calculators/core:flow_limiter_calculator",
+        "@mediapipe//mediapipe/calculators/util:non_max_suppression_calculator",
         "//mediapipe_addons:pytorch_inference_calculator",
     ],
 )

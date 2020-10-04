@@ -9,6 +9,37 @@
 
 namespace mediapipe
 {
+  using namespace torch::indexing;
+
+  std::unique_ptr<torch::Tensor> ImageFrameToNormalizedTensor(
+      const mediapipe::ImageFrame &image_frame, float mean, float stddev)
+  {
+    const int cols = image_frame.Width();
+    const int rows = image_frame.Height();
+    const int channels = image_frame.NumberOfChannels();
+    const uint8 *pixel = image_frame.PixelData();
+    const int width_padding = image_frame.WidthStep() - cols * channels;
+
+    auto options = torch::TensorOptions().dtype(torch::kFloat32).requires_grad(false);
+    auto tensor_ = torch::empty({channels, rows, cols}, options);
+    auto tensor = absl::make_unique<torch::Tensor>(tensor_);
+    auto tensor_data = tensor->accessor<float, 3>();
+
+    for (int row = 0; row < rows; ++row)
+    {
+      for (int col = 0; col < cols; ++col)
+      {
+        for (int channel = 0; channel < channels; ++channel)
+        {
+          tensor_data[channel][row][col] = (float(pixel[channel]) - mean) / stddev;
+        }
+        pixel += channels;
+      }
+      pixel += width_padding;
+    }
+    return tensor;
+  }
+
   typedef std::vector<Detection> Detections;
   const char kDetections[] = "DETECTIONS";
 
@@ -22,7 +53,8 @@ namespace mediapipe
     {
       // FIXME Move this into side-channel
       std::cout << "Loading da model" << std::endl;
-      model = torch::jit::load("examples/yolov5s.pt");
+      model = torch::jit::load("examples/yolov5s.torchscript.pt");
+      model.eval();
     };
     ~PytorchInferenceCalculator() override = default;
 
@@ -42,19 +74,37 @@ namespace mediapipe
 
     ::mediapipe::Status Process(CalculatorContext *cc) override
     {
-      auto output_detections = absl::make_unique<Detections>();
+      const ImageFrame &frame = cc->Inputs().Index(0).Value().Get<ImageFrame>();
+      auto tensor = ImageFrameToNormalizedTensor(frame, 0, 255.);
+      std::vector<torch::jit::IValue> inputs;
+      inputs.push_back(tensor->unsqueeze(0));
+      auto result = model.forward(inputs).toTensor();
 
-      Detection detection;
-      //detection.set_label_id(1);
-      //detection.set_label("HELLO");
-      auto location = detection.mutable_location_data();
-      location->set_format(LocationData::BOUNDING_BOX);
-      auto box = location->mutable_bounding_box();
-      box->set_xmin(10);
-      box->set_ymin(10);
-      box->set_width(100);
-      box->set_height(100);
-      output_detections->emplace_back(detection);
+      // Post processing
+      result = result.squeeze(0);
+      auto confidence = result.index({Slice(), 4});
+      result = result.index({confidence > 0.5, Slice()});
+
+      auto output_detections = absl::make_unique<Detections>();
+      for (auto idx = 0; idx < result.size(0); ++idx)
+      {
+        float x = result.index({idx, 0}).item<float>();
+        float y = result.index({idx, 1}).item<float>();
+        float w = result.index({idx, 2}).item<float>();
+        float h = result.index({idx, 3}).item<float>();
+
+        Detection detection;
+        //detection.set_label_id(1);
+        //detection.set_label("HELLO");
+        auto location = detection.mutable_location_data();
+        location->set_format(LocationData::BOUNDING_BOX);
+        auto box = location->mutable_bounding_box();
+        box->set_xmin(x - w / 2);
+        box->set_ymin(y - h / 2);
+        box->set_width(w);
+        box->set_height(h);
+        output_detections->emplace_back(detection);
+      }
 
       cc->Outputs()
           .Index(0)
