@@ -2,6 +2,8 @@ workspace(name = "mediapipe_addons")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
+
+################ MEDIAPIPE DEPENDENCIES #####################
 http_archive(
     name = "mediapipe",
     strip_prefix = "mediapipe-0.7.11",
@@ -389,3 +391,12 @@ http_archive(
 
 load("@org_tensorflow//tensorflow:workspace.bzl", "tf_workspace")
 tf_workspace(tf_repo_name = "org_tensorflow")
+
+
+http_archive(
+    name = "libtorch",
+    build_file = "@//third_party/libtorch:BUILD",
+    strip_prefix = "libtorch",
+    # FIXME Make platform indepedent
+    urls = ["https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.6.0.zip"],
+)
